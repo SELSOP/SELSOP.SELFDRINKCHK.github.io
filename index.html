@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>운항관리사 음주 자가진단 (v3.7)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 이 부분을 추가하세요 -->
+    <link rel="manifest" href="manifest.json">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        .tab-btn.active {
+            border-color: #3B82F6;
+            color: #3B82F6;
+            font-weight: 600;
+        }
+        .result-card {
+            transition: all 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col min-h-screen">
+    <main class="flex-grow flex items-center justify-center p-4">
+        <div class="w-full max-w-2xl mx-auto">
+            <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+                <div class="text-center mb-6">
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-800">✈️ 운항관리사 음주 자가진단</h1>
+                    <p class="text-gray-500 mt-2">안전한 비행을 위해 스스로 점검하고 예측하세요.</p>
+                </div>
+
+                <!-- 탭 메뉴 -->
+                <div class="mb-6 border-b border-gray-200">
+                    <nav class="flex -mb-px space-x-4 md:space-x-6 overflow-x-auto">
+                        <button id="tab1-btn" class="tab-btn active flex-shrink-0 py-3 px-1 border-b-2 font-medium text-sm text-gray-500 hover:text-blue-600 hover:border-blue-300">현재 농도 계산</button>
+                        <button id="tab2-btn" class="tab-btn flex-shrink-0 py-3 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-blue-600 hover:border-blue-300">근무 가능 여부 예측</button>
+                        <button id="tab3-btn" class="tab-btn flex-shrink-0 py-3 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-blue-600 hover:border-blue-300">※ 양성 판정 후속조치</button>
+                    </nav>
+                </div>
+
+                <!-- 탭 1: 현재 농도 계산 -->
+                <div id="tab1-content">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">성별</label>
+                            <div class="flex space-x-4">
+                                <label class="flex items-center"><input type="radio" name="gender1" value="0.86" class="form-radio h-4 w-4 text-blue-600" checked><span class="ml-2 text-gray-700">남성</span></label>
+                                <label class="flex items-center"><input type="radio" name="gender1" value="0.64" class="form-radio h-4 w-4 text-pink-600"><span class="ml-2 text-gray-700">여성</span></label>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="weight1" class="block text-sm font-medium text-gray-700 mb-1">체중 (kg)</label>
+                            <input type="number" id="weight1" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="예: 70">
+                        </div>
+                    </div>
+                    <div id="alcohol-inputs-container1" class="space-y-4 mb-4"></div>
+                    <button id="add-drink-btn1" class="w-full mb-6 text-sm bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition">+ 다른 주종 추가하기 (최대 3종)</button>
+                    
+                    <button id="calculate-btn1" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition">결과 확인하기</button>
+                    <div id="error1" class="text-red-500 text-center mt-3 font-semibold h-5"></div>
+                    <div id="result-container1" class="mt-5 hidden">
+                        <div id="result-card1" class="result-card rounded-lg p-6">
+                            <h2 class="text-xl font-bold mb-2 text-center" id="result-title1"></h2>
+                            <p class="text-4xl font-bold text-center mb-4" id="bac-level1"></p>
+                            <p class="text-center text-sm" id="result-message1"></p>
+                        </div>
+                        <div id="sober-time-info1" class="mt-4 text-center text-sm bg-yellow-100 text-yellow-800 p-3 rounded-lg hidden"><p id="sober-time1"></p></div>
+                    </div>
+                </div>
+
+                <!-- 탭 2: 근무 가능 여부 예측 -->
+                <div id="tab2-content" class="hidden">
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div class="md:col-span-2">
+                           <p class="text-sm text-gray-600 bg-gray-50 p-3 rounded-md">성별, 체중, 음주 정보는 이전 탭에서 자동으로 가져옵니다.</p>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">음주 종료 시각</label>
+                            <div class="flex space-x-2">
+                                <input type="date" id="drink-end-date" class="w-1/2 px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                                <select id="drink-end-hour" class="w-1/4 px-3 py-2 border border-gray-300 rounded-md shadow-sm"></select>
+                                <select id="drink-end-minute" class="w-1/4 px-3 py-2 border border-gray-300 rounded-md shadow-sm"></select>
+                            </div>
+                        </div>
+                         <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">근무 시작 시각</label>
+                            <div class="flex space-x-2">
+                                <input type="date" id="work-start-date" class="w-1/2 px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                                <select id="work-start-hour" class="w-1/4 px-3 py-2 border border-gray-300 rounded-md shadow-sm"></select>
+                                <select id="work-start-minute" class="w-1/4 px-3 py-2 border border-gray-300 rounded-md shadow-sm"></select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="calculate-btn2" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition">근무 가능 여부 예측하기</button>
+                    <div id="error2" class="text-red-500 text-center mt-3 font-semibold h-5"></div>
+                    <div id="result-container2" class="mt-5 hidden">
+                        <div id="result-card2" class="result-card rounded-lg p-6">
+                            <h2 class="text-xl font-bold mb-2 text-center" id="result-title2"></h2>
+                            <p class="text-center text-gray-600 text-sm mb-2">근무 시작 시점 예상 혈중 알코올 농도</p>
+                            <p class="text-4xl font-bold text-center mb-4" id="bac-level2"></p>
+                            <div id="result-message2" class="text-center text-sm space-y-1"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 탭 3: 후속조치 안내 -->
+                <div id="tab3-content" class="hidden">
+                    <div class="space-y-6 text-gray-700">
+                        <div>
+                            <h3 class="text-lg font-bold text-red-600 mb-2">1) 최초 1회 Fail 시</h3>
+                            <p class="mb-3"><span class="font-semibold">조치:</span> 본부장 경고 및 대기 발령(7일), 경위서 별도 징구</p>
+                            <div class="border rounded-lg p-3 bg-gray-50">
+                                <p class="text-base font-semibold mb-2">대기 발령 시 업무 일정</p>
+                                <ul class="space-y-2 text-sm">
+                                    <li class="grid grid-cols-3 gap-2"><span class="font-semibold">Fail 당일</span> <span class="col-span-2">근무 배제 후 귀가 조치 (자가운전 금지)</span></li>
+                                    <li class="grid grid-cols-3 gap-2"><span class="font-semibold">1일차</span> <span class="col-span-2">NZ 방문 의사 면담, 혈액/심리검사</span></li>
+                                    <li class="grid grid-cols-3 gap-2"><span class="font-semibold">2일차</span> <span class="col-span-2">온라인 교육 수강 및 팀장 면담</span></li>
+                                    <li class="grid grid-cols-3 gap-2"><span class="font-semibold">3-4일차</span> <span class="col-span-2">관련 규정/지침 학습 및 보고서 제출</span></li>
+                                    <li class="grid grid-cols-3 gap-2"><span class="font-semibold">5일차</span> <span class="col-span-2">그룹장/팀장 면담 및 서약서 접수</span></li>
+                                    <li class="grid grid-cols-3 gap-2"><span class="font-semibold">6-7일차</span> <span class="col-span-2">Day Off 부여</span></li>
+                                </ul>
+                                <p class="text-xs text-gray-500 mt-3">* NZ 방문 등 세부 일정은 근무 스케줄을 고려하여 탄력적으로 운영될 수 있습니다.</p>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-red-800 mb-2">2) 동일인 대상 2회 Fail 시</h3>
+                            <p><span class="font-semibold">조치:</span> 상벌위원회 회부</p>
+                            <ul class="list-disc list-inside text-sm mt-2 space-y-1 pl-2">
+                                <li>IP 통보 후 본부 또는 전사 상벌위원회 회부</li>
+                                <li>반복 횟수, 경위 등을 고려하여 개별 심사를 통해 징계 조치</li>
+                                <li>별도 누적 기간 산정 없음</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 규정 안내 영역 컨테이너 -->
+                <div id="regulation-container">
+                    <div id="regulation-info-tab1" class="mt-8 p-5 bg-gray-50 rounded-lg border border-gray-200">
+                        <h3 class="text-lg font-bold text-gray-800 mb-3">🚗 도로교통법 음주운전 금지 기준</h3>
+                        <ul class="space-y-2.5 text-sm text-gray-600">
+                            <li class="flex items-start">
+                                <span class="text-yellow-500 font-bold mr-2">■</span>
+                                <div>
+                                    <strong>면허 정지:</strong> 혈중 알코올 농도 <strong class="text-yellow-600">0.03% 이상 ~ 0.08% 미만</strong>
+                                    <p class="text-xs text-gray-500 mt-1">(1년 이하 징역 또는 500만원 이하 벌금)</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-red-500 font-bold mr-2">■</span>
+                                <div>
+                                    <strong>면허 취소:</strong> 혈중 알코올 농도 <strong class="text-red-600">0.08% 이상</strong>
+                                    <p class="text-xs text-gray-500 mt-1">(1년 이상 2년 이하 징역 또는 500만원 이상 1천만원 이하 벌금)</p>
+                                </div>
+                            </li>
+                        </ul>
+                         <p class="text-xs text-gray-500 mt-4">* 본 앱의 계산 결과는 위드마크 공식을 기반으로 한 추정치이며, 개인의 신체 조건 및 컨디션에 따라 실제와 차이가 있을 수 있습니다. 혈중 알코올농도가 최고치에 이른 후 시간당 알코올 분해 값은 개인에 따라 0.008%~0.030% 다를 수 있어 평균적으로 시간당 0.015%씩 감소하는 것으로 산정하였으며, <strong class="text-red-600 font-bold">참고용</strong>으로만 활용하시기 바랍니다.</p>
+                    </div>
+
+                    <div id="regulation-info-tab2" class="hidden mt-8 p-5 bg-gray-50 rounded-lg border border-gray-200">
+                        <h3 class="text-lg font-bold text-gray-800 mb-3">⚠️ 운항관리사 음주 관련 주요 규정</h3>
+                        <ul class="space-y-2.5 text-sm text-gray-600">
+                            <li class="flex items-start">
+                                <span class="text-red-500 font-bold mr-2">■</span>
+                                <div>
+                                    <strong>근무 불가 조건 (아래 중 하나라도 해당 시):</strong>
+                                    <ul class="list-disc list-inside mt-1 space-y-1">
+                                        <li>알코올 음료 복용 후 <strong class="text-red-600">12시간</strong>이 경과하지 않은 경우</li>
+                                        <li>혈중 알코올 농도 <strong class="text-red-600">0.02%</strong> 이상인 경우</li>
+                                        <li>알코올의 영향 하에 있다고 판단될 때</li>
+                                        <li>당국의 음주 측정을 거부할 경우</li>
+                                    </ul>
+                                </div>
+                            </li>
+                            <li class="flex items-start"><span class="text-blue-500 font-bold mr-2">■</span><div><strong>행정 처분 (농도별):</strong>
+                                <ul class="list-disc list-inside ml-5 mt-1 space-y-1">
+                                    <li>0.02% ~ 0.06%: 자격증명 효력정지 60일</li>
+                                    <li>0.06% ~ 0.09%: 자격증명 효력정지 120일</li>
+                                    <li>0.09% 이상: 자격증명 취소</li>
+                                </ul>
+                            </li>
+                             <li class="flex items-start"><span class="text-gray-500 font-bold mr-2">■</span><div><strong>엄격 금지 사항:</strong> 근무/훈련 중 음주, 동료의 근무 중 음주 묵인, 테스트 불응 등</div></li>
+                        </ul>
+                        <p class="text-xs text-gray-500 mt-4">* 본 앱의 계산 결과는 위드마크 공식을 기반으로 한 추정치이며, 개인의 신체 조건 및 컨디션에 따라 실제와 차이가 있을 수 있습니다. 혈중 알코올농도가 최고치에 이른 후 시간당 알코올 분해 값은 개인에 따라 0.008%~0.030% 다를 수 있어 평균적으로 시간당 0.015%씩 감소하는 것으로 산정하였으며, <strong class="text-red-600 font-bold">참고용</strong>으로만 활용하시기 바랍니다.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="text-center py-4">
+        <p class="text-gray-600 text-lg font-semibold">Operations & Customer Center</p>
+        <p class="text-gray-400 text-xs mt-1">© 2025 KE SELSOP. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // --- 초기화 및 공통 로직 ---
+        const unitMapping = {
+            '17': { 'ml': 1, '병': 360, '반병': 180, '잔': 60 }, // 소주
+            '5': { 'ml': 1, '병': 330, '잔': 500 }, // 맥주
+            '12': { 'ml': 1, '병': 750, '잔': 150 }, // 와인
+            '40': { 'ml': 1, '잔': 30 }, // 위스키
+            '6': { 'ml': 1, '병': 750 }, // 막걸리
+            'custom': { 'ml': 1 }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setupTabs();
+            setupAddDrinkButton('1');
+            populateTimeSelects();
+            addAlcoholInput(1);
+            setupCalculation('1');
+            setupCalculation('2');
+        });
+
+        function setupTabs() {
+            const tabs = {
+                btn1: document.getElementById('tab1-btn'),
+                btn2: document.getElementById('tab2-btn'),
+                btn3: document.getElementById('tab3-btn'),
+                content1: document.getElementById('tab1-content'),
+                content2: document.getElementById('tab2-content'),
+                content3: document.getElementById('tab3-content'),
+                regInfoContainer: document.getElementById('regulation-container'),
+                regInfo1: document.getElementById('regulation-info-tab1'),
+                regInfo2: document.getElementById('regulation-info-tab2'),
+            };
+            tabs.btn1.addEventListener('click', () => switchTab('tab1', tabs));
+            tabs.btn2.addEventListener('click', () => switchTab('tab2', tabs));
+            tabs.btn3.addEventListener('click', () => switchTab('tab3', tabs));
+        }
+
+        function switchTab(tabName, tabs) {
+            const tabContents = [tabs.content1, tabs.content2, tabs.content3];
+            const tabButtons = [tabs.btn1, tabs.btn2, tabs.btn3];
+            
+            tabContents.forEach(content => content.classList.add('hidden'));
+            tabButtons.forEach(button => button.classList.remove('active'));
+
+            if (tabName === 'tab1') {
+                tabs.content1.classList.remove('hidden');
+                tabs.btn1.classList.add('active');
+                tabs.regInfoContainer.classList.remove('hidden');
+                tabs.regInfo1.classList.remove('hidden');
+                tabs.regInfo2.classList.add('hidden');
+            } else if (tabName === 'tab2') {
+                tabs.content2.classList.remove('hidden');
+                tabs.btn2.classList.add('active');
+                tabs.regInfoContainer.classList.remove('hidden');
+                tabs.regInfo1.classList.add('hidden');
+                tabs.regInfo2.classList.remove('hidden');
+            } else if (tabName === 'tab3') {
+                tabs.content3.classList.remove('hidden');
+                tabs.btn3.classList.add('active');
+                tabs.regInfoContainer.classList.add('hidden');
+            }
+        }
+
+        function populateTimeSelects() {
+            const hourSelects = [document.getElementById('drink-end-hour'), document.getElementById('work-start-hour')];
+            const minuteSelects = [document.getElementById('drink-end-minute'), document.getElementById('work-start-minute')];
+
+            for (let i = 0; i < 24; i++) {
+                const value = i.toString().padStart(2, '0');
+                hourSelects.forEach(sel => sel.add(new Option(value, value)));
+            }
+            for (let i = 0; i < 60; i++) {
+                const value = i.toString().padStart(2, '0');
+                minuteSelects.forEach(sel => sel.add(new Option(value, value)));
+            }
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            const yyyyMMdd = now.toISOString().slice(0, 10);
+            document.getElementById('drink-end-date').value = yyyyMMdd;
+            document.getElementById('work-start-date').value = yyyyMMdd;
+        }
+
+        // --- 주종 추가 로직 ---
+        let drinkCount = { '1': 0 };
+
+        function setupAddDrinkButton(tabNum) {
+            document.getElementById(`add-drink-btn${tabNum}`).addEventListener('click', () => addAlcoholInput(tabNum));
+        }
+
+        function addAlcoholInput(tabNum) {
+            if (drinkCount[tabNum] >= 3) return;
+            drinkCount[tabNum]++;
+
+            const container = document.getElementById(`alcohol-inputs-container${tabNum}`);
+            
+            const wrapper = document.createElement('div');
+            wrapper.className = 'alcohol-input-group p-3 border border-gray-200 rounded-lg';
+            wrapper.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <p class="text-sm font-semibold text-gray-600">주종 #${drinkCount[tabNum]}</p>
+                    ${drinkCount[tabNum] > 1 ? `<button class="remove-drink-btn text-red-500 text-xs font-bold">삭제</button>` : ''}
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600">주종</label>
+                        <select class="alcohol-type w-full text-sm px-2 py-1 border border-gray-300 rounded-md">
+                            <option value="17">소주 (17%)</option><option value="5">맥주 (5%)</option><option value="12">와인 (12%)</option><option value="40">위스키 (40%)</option><option value="6">막걸리 (6%)</option><option value="custom">직접 입력</option>
+                        </select>
+                    </div>
+                    <div class="custom-alcohol-div hidden">
+                        <label class="block text-xs font-medium text-gray-600">도수(%)</label>
+                        <input type="number" class="custom-alcohol-input w-full text-sm px-2 py-1 border border-gray-300 rounded-md" placeholder="예: 17">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600">단위</label>
+                        <select class="unit-select w-full text-sm px-2 py-1 border border-gray-300 rounded-md"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600">음주량</label>
+                        <input type="number" class="amount-input w-full text-sm px-2 py-1 border border-gray-300 rounded-md" placeholder="예: 1">
+                    </div>
+                </div>
+            `;
+            container.appendChild(wrapper);
+            
+            const alcoholTypeSelect = wrapper.querySelector('.alcohol-type');
+            const unitSelect = wrapper.querySelector('.unit-select');
+
+            function updateUnitOptions() {
+                const selectedType = alcoholTypeSelect.value;
+                unitSelect.innerHTML = '';
+                const units = unitMapping[selectedType] || { 'ml': 1 };
+                for (const unit in units) {
+                    unitSelect.add(new Option(unit, unit));
+                }
+                wrapper.querySelector('.custom-alcohol-div').classList.toggle('hidden', selectedType !== 'custom');
+            }
+
+            alcoholTypeSelect.addEventListener('change', updateUnitOptions);
+            updateUnitOptions(); // 초기 옵션 설정
+
+            const removeBtn = wrapper.querySelector('.remove-drink-btn');
+            if (removeBtn) {
+                removeBtn.addEventListener('click', (e) => {
+                    e.target.closest('.alcohol-input-group').remove();
+                    drinkCount[tabNum]--;
+                    document.getElementById(`add-drink-btn${tabNum}`).style.display = 'block';
+                    container.querySelectorAll('.alcohol-input-group').forEach((group, index) => {
+                        group.querySelector('p').textContent = `주종 #${index + 1}`;
+                    });
+                });
+            }
+
+            if (drinkCount[tabNum] >= 3) {
+                document.getElementById(`add-drink-btn${tabNum}`).style.display = 'none';
+            }
+        }
+        
+        // --- 계산 로직 ---
+        function setupCalculation(tabNum) {
+            document.getElementById(`calculate-btn${tabNum}`).addEventListener('click', () => {
+                const errorDiv = document.getElementById(`error${tabNum}`);
+                errorDiv.textContent = '';
+                document.getElementById(`result-container${tabNum}`).classList.add('hidden');
+
+                const inputs = getInputs(tabNum);
+                if (!inputs) return;
+
+                const peakBac = calculatePeakBAC(inputs.genderCoeff, inputs.weight, inputs.totalPureAlcohol);
+                
+                if (tabNum === '1') {
+                    displayResult1(peakBac);
+                } else {
+                    const drinkEndTime = inputs.drinkEndTime;
+                    const workStartTime = inputs.workStartTime;
+                    
+                    const totalElapsedHours = (workStartTime - drinkEndTime) / (1000 * 60 * 60);
+                    const risingPhaseHours = 1.5; // 90분
+                    const eliminationHours = Math.max(0, totalElapsedHours - risingPhaseHours);
+                    const eliminatedBac = eliminationHours * 0.015; // 시간당 0.015% 감소
+                    const estimatedBac = Math.max(0, peakBac - eliminatedBac);
+
+                    displayResult2(estimatedBac, totalElapsedHours);
+                }
+            });
+        }
+        
+        function getInputs(tabNum) {
+            const errorDiv = document.getElementById(`error${tabNum}`);
+            const sourceTabNumForInfo = tabNum === '2' ? '1' : tabNum;
+
+            const genderEl = document.querySelector(`input[name="gender${sourceTabNumForInfo}"]:checked`);
+            const weightEl = document.getElementById(`weight${sourceTabNumForInfo}`);
+
+            if (!genderEl || !weightEl) {
+                errorDiv.textContent = '기본 정보를 먼저 입력해주세요.';
+                return null;
+            }
+
+            const genderCoeff = parseFloat(genderEl.value);
+            const weight = parseFloat(weightEl.value);
+
+            if (isNaN(weight) || weight <= 0) {
+                errorDiv.textContent = '올바른 체중을 입력해주세요.';
+                return null;
+            }
+
+            const inputGroups = document.querySelectorAll(`#alcohol-inputs-container1 .alcohol-input-group`);
+            
+            if (inputGroups.length === 0) {
+                 (tabNum === '2' ? document.getElementById('error2') : errorDiv).textContent = '하나 이상의 주종을 입력해주세요.';
+                return null;
+            }
+
+            let totalPureAlcohol = 0;
+            let hasInputError = false;
+            
+            inputGroups.forEach((group) => {
+                const quantity = parseFloat(group.querySelector('.amount-input').value);
+                const alcoholTypeSelect = group.querySelector('.alcohol-type');
+                const unit = group.querySelector('.unit-select').value;
+                let alcoholPercent = parseFloat(alcoholTypeSelect.value);
+
+                if (alcoholTypeSelect.value === 'custom') {
+                    alcoholPercent = parseFloat(group.querySelector('.custom-alcohol-input').value);
+                }
+
+                if (isNaN(quantity) || quantity <= 0 || isNaN(alcoholPercent) || alcoholPercent <= 0) {
+                    hasInputError = true;
+                } else {
+                    const mlPerUnit = unitMapping[alcoholTypeSelect.value][unit];
+                    const totalMl = quantity * mlPerUnit;
+                    totalPureAlcohol += totalMl * (alcoholPercent / 100) * 0.7894;
+                }
+            });
+            
+            if (hasInputError) {
+                (tabNum === '2' ? document.getElementById('error2') : errorDiv).textContent = '모든 주종의 도수와 음주량을 올바르게 입력해주세요.';
+                return null;
+            }
+            
+            if (tabNum === '2') {
+                const drinkDate = document.getElementById('drink-end-date').value;
+                const drinkHour = document.getElementById('drink-end-hour').value;
+                const drinkMinute = document.getElementById('drink-end-minute').value;
+                const workDate = document.getElementById('work-start-date').value;
+                const workHour = document.getElementById('work-start-hour').value;
+                const workMinute = document.getElementById('work-start-minute').value;
+
+                if (!drinkDate || !workDate) {
+                    errorDiv.textContent = '음주 종료 및 근무 시작 날짜/시간을 모두 입력해주세요.';
+                    return null;
+                }
+                const drinkEndTime = new Date(`${drinkDate}T${drinkHour}:${drinkMinute}`);
+                const workStartTime = new Date(`${workDate}T${workHour}:${workMinute}`);
+
+                if (drinkEndTime >= workStartTime) {
+                    errorDiv.textContent = '음주 종료 시각은 근무 시작 시각보다 빨라야 합니다.';
+                    return null;
+                }
+                return { genderCoeff, weight, totalPureAlcohol, drinkEndTime, workStartTime };
+            }
+            
+            return { genderCoeff, weight, totalPureAlcohol };
+        }
+
+        function calculatePeakBAC(genderCoeff, weight, totalPureAlcohol) {
+            if (totalPureAlcohol === 0) return 0;
+            return (totalPureAlcohol * 0.7) / (weight * genderCoeff * 10);
+        }
+
+        // --- 결과 표시 로직 ---
+        function displayResult1(bac) {
+            const form = {
+                container: document.getElementById('result-container1'),
+                card: document.getElementById('result-card1'),
+                title: document.getElementById('result-title1'),
+                level: document.getElementById('bac-level1'),
+                message: document.getElementById('result-message1'),
+                soberInfo: document.getElementById('sober-time-info1'),
+                soberTime: document.getElementById('sober-time1'),
+            };
+            form.container.classList.remove('hidden');
+            form.level.textContent = `${bac.toFixed(4)}%`;
+
+            const workLimit = 0.02;
+            const duiSuspensionLimit = 0.03;
+            const duiRevocationLimit = 0.08;
+
+            let titleText = '';
+            let messageText = '';
+            let cardClass = '';
+
+            if (bac >= workLimit) {
+                
+                if (bac >= duiRevocationLimit) {
+                    titleText = '🚨 면허 취소 및 업무 불가';
+                    messageText = `운항관리사 기준(0.02%) 초과 및 도로교통법상 <strong class="font-bold">면허 취소</strong> 수준입니다.`;
+                } else if (bac >= duiSuspensionLimit) {
+                    titleText = '⚠️ 면허 정지 및 업무 불가';
+                    messageText = `운항관리사 기준(0.02%) 초과 및 도로교통법상 <strong class="font-bold">면허 정지</strong> 수준입니다.`;
+                } else {
+                    titleText = '🚨 업무 불가 (기준치 초과)';
+                    messageText = `운항관리사 음주 단속 기준인 ${workLimit}%를 초과했습니다.`;
+                }
+                cardClass = 'result-card rounded-lg p-6 bg-red-100 text-red-800';
+
+                // 상승기 90분(1.5시간)을 포함한 해소 시간 계산
+                const timeToDrop = (bac - workLimit) / 0.015; // 감소에 걸리는 시간
+                const totalTimeToSoberInHours = timeToDrop + 1.5; // 상승기 90분 추가
+                
+                const totalMinutes = Math.round(totalTimeToSoberInHours * 60);
+                const hours = Math.floor(totalMinutes / 60);
+                const minutes = totalMinutes % 60;
+
+                form.soberTime.textContent = `업무 가능 기준(${workLimit}%)까지 최소 ${hours}시간 ${minutes}분 이상 소요될 것으로 예상됩니다. (상승기 90분 포함)`;
+                form.soberInfo.classList.remove('hidden');
+
+            } else {
+                titleText = '✅ 업무 가능';
+                cardClass = 'result-card rounded-lg p-6 bg-green-100 text-green-800';
+                
+                if (bac > 0) {
+                     messageText = `운항관리사 기준(${workLimit}%) 미만입니다. 하지만 음주 후에는 절대 운전하지 마십시오.`;
+                } else {
+                     messageText = `예상되는 혈중 알코올이 없습니다.`;
+                }
+                form.soberInfo.classList.add('hidden');
+            }
+
+            form.title.textContent = titleText;
+            form.card.className = cardClass;
+            form.message.innerHTML = messageText;
+        }
+
+        function displayResult2(bac, elapsedHours) {
+            const form = {
+                container: document.getElementById('result-container2'),
+                card: document.getElementById('result-card2'),
+                title: document.getElementById('result-title2'),
+                level: document.getElementById('bac-level2'),
+                message: document.getElementById('result-message2'),
+            };
+            form.container.classList.remove('hidden');
+            form.level.textContent = `${bac.toFixed(4)}%`;
+
+            const isTimeViolation = elapsedHours < 12;
+            const isBacViolation = bac >= 0.02;
+            let title = '';
+            let cardClass = '';
+            let messages = '';
+
+            if (isTimeViolation || isBacViolation) {
+                title = '🚨 근무 불가' + (isTimeViolation && isBacViolation ? ' (복수 규정 위반)' : isTimeViolation ? ' (12시간 규정 위반)' : ' (농도 기준 초과)');
+                cardClass = 'result-card rounded-lg p-6 bg-red-100 text-red-800';
+            } else {
+                title = '✅ 근무 가능';
+                cardClass = 'result-card rounded-lg p-6 bg-green-100 text-green-800';
+            }
+            
+            form.title.textContent = title;
+            form.card.className = cardClass;
+
+            messages += isTimeViolation ? `<p class="text-red-600">❌ 음주 후 12시간 경과 규정 위반 (경과 시간: ${Math.floor(elapsedHours)}시간 ${Math.round((elapsedHours % 1) * 60)}분)</p>` : `<p class="text-green-600">✔️ 음주 후 12시간 경과 규정 충족</p>`;
+            messages += isBacViolation ? `<p class="text-red-600">❌ 혈중 알코올 농도 0.02% 이상</p>` : `<p class="text-green-600">✔️ 혈중 알코올 농도 0.02% 미만</p>`;
+            form.message.innerHTML = messages;
+        }
+    </script>
+<!-- 이 부분을 추가하세요 -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./service-worker.js').then(registration => {
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+          }, err => {
+            console.log('ServiceWorker registration failed: ', err);
+          });
+        });
+      }
+    </script>
+</body>
+</html>
