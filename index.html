@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>운항관리사 음주 자가진단 (v3.7)</title>
+    <title>운항관리사 음주량 자가진단 (v1.0)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- 이 부분을 추가하세요 -->
     <link rel="manifest" href="manifest.json">
@@ -31,7 +31,7 @@
         <div class="w-full max-w-2xl mx-auto">
             <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
                 <div class="text-center mb-6">
-                    <h1 class="text-2xl md:text-3xl font-bold text-gray-800">운항관리사 음주 자가진단 ✈️</h1>
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-800">운항관리사 음주량 자가진단 ✈️</h1>
                     <p class="text-gray-500 mt-2">안전 운항을 위해 스스로를 점검하세요.</p>
                 </div>
 
@@ -188,7 +188,7 @@
                             </li>
                              <li class="flex items-start"><span class="text-gray-500 font-bold mr-2">■</span><div><strong>엄격 금지 사항:</strong> <strong class="text-red-600"> 근무/훈련 중 음주, 동료의 근무 중 음주 묵인, 테스트 불응 등</strong></div></li>
                         </ul>
-                        <p class="text-xs text-gray-500 mt-4">* 본 앱의 계산 결과는 위드마크 공식을 기반으로 한 추정치이며, 개인의 신체 조건 및 컨디션에 따라 실제와 차이가 있을 수 있습니다. 혈중 알코올농도가 최고치에 이른 후 시간당 알코올 분해 값은 개인에 따라 0.008%~0.030% 다를 수 있어 평균적으로 시간당 0.015%씩 감소하는 것으로 산정하였으며, <strong class="text-red-600 font-bold">참고용</strong>으로만 활용하시기 바랍니다.</p>
+                        <p class="text-xs text-gray-500 mt-4">* 본 앱의 계산 결과는 위드마크 공식을 기반으로 한 추정치이며, 개인의 신체 조건 및 컨디션에 따라 실제와 차이가 있을 수 있습니다. 혈중 알코올농도가 최고치에 이른 후 <strong class="text-blue-600 font-bold">시간당 알코올 분해 값은 개인에 따라 0.008%~0.030% 다를 수 있어</strong> 평균적으로 시간당 0.015%씩 감소하는 것으로 산정하였으며, <strong class="text-red-600 font-bold">참고용</strong>으로만 활용하시기 바랍니다.</p>
                     </div>
                 </div>
             </div>
@@ -522,7 +522,7 @@
                 cardClass = 'result-card rounded-lg p-6 bg-green-100 text-green-800';
                 
                 if (bac > 0) {
-                     messageText = `운항관리사 기준(${workLimit}%) 미만입니다. 하지만 <strong class="text-red-600 font-bold">음주 후에는 절대 근무/운전하지 마십시오.</strong>`;
+                     messageText = `운항관리사 기준(${workLimit}%) 미만입니다. <strong class="text-red-600 font-bold">단, 음주 후에는 절대 근무/운전하지 마십시오.</strong>`;
                 } else {
                      messageText = `예상되는 혈중 알코올이 없습니다.`;
                 }
@@ -581,5 +581,6 @@
     </script>
 </body>
 </html>
+
 
 
