@@ -32,7 +32,7 @@
             <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
                 <div class="text-center mb-6">
                     <h1 class="text-2xl md:text-3xl font-bold text-gray-800">✈️ 운항관리사 음주 자가진단</h1>
-                    <p class="text-gray-500 mt-2">안전한 비행을 위해 스스로 점검하고 예측하세요.</p>
+                    <p class="text-gray-500 mt-2">안전 운항을 위해 스스로 점검하세요.</p>
                 </div>
 
                 <!-- 탭 메뉴 -->
@@ -44,7 +44,7 @@
                     </nav>
                 </div>
 
-                <!-- 탭 1: 현재 농도 계산 -->
+                <!-- 탭 1: 현재 혈중 알코올 농도 계산 -->
                 <div id="tab1-content">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                         <div>
@@ -202,11 +202,11 @@
     <script>
         // --- 초기화 및 공통 로직 ---
         const unitMapping = {
-            '17': { 'ml': 1, '병': 360, '반병': 180, '잔': 60 }, // 소주
-            '5': { 'ml': 1, '병': 330, '잔': 500 }, // 맥주
-            '12': { 'ml': 1, '병': 750, '잔': 150 }, // 와인
-            '40': { 'ml': 1, '잔': 30 }, // 위스키
-            '6': { 'ml': 1, '병': 750 }, // 막걸리
+            '17': { '병': 360, '반병': 180, '잔': 60, 'ml': 1 }, // 소주
+            '5': { '병': 330, '잔(500cc)': 500, 'ml': 1 }, // 맥주 500 cc
+            '14': { '병': 750, '잔': 150, 'ml': 1 }, // 와인
+            '40': { '잔(1oz)': 30, 'ml': 1 }, // 위스키
+            '6': { '병': 750, 'ml': 1 }, // 막걸리
             'custom': { 'ml': 1 }
         };
 
@@ -305,7 +305,7 @@
                     <div>
                         <label class="block text-xs font-medium text-gray-600">주종</label>
                         <select class="alcohol-type w-full text-sm px-2 py-1 border border-gray-300 rounded-md">
-                            <option value="17">소주 (17%)</option><option value="5">맥주 (5%)</option><option value="12">와인 (12%)</option><option value="40">위스키 (40%)</option><option value="6">막걸리 (6%)</option><option value="custom">직접 입력</option>
+                            <option value="17">소주 (17%)</option><option value="5">맥주 (5%)</option><option value="14">와인 (14%)</option><option value="40">위스키 (40%)</option><option value="6">막걸리 (6%)</option><option value="custom">직접 입력</option>
                         </select>
                     </div>
                     <div class="custom-alcohol-div hidden">
@@ -522,7 +522,7 @@
                 cardClass = 'result-card rounded-lg p-6 bg-green-100 text-green-800';
                 
                 if (bac > 0) {
-                     messageText = `운항관리사 기준(${workLimit}%) 미만입니다. 하지만 음주 후에는 절대 운전하지 마십시오.`;
+                     messageText = `운항관리사 기준(${workLimit}%) 미만입니다. 하지만 <strong class="font-bold">음주 후에는 절대 운전하지 마십시오.</strong>`;
                 } else {
                      messageText = `예상되는 혈중 알코올이 없습니다.`;
                 }
@@ -581,3 +581,4 @@
     </script>
 </body>
 </html>
+
