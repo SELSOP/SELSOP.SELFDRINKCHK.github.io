@@ -1,6 +1,6 @@
 {
   "name": "운항관리사 음주 자가진단",
-  "short_name": "음주 자가진단",
+  "short_name": "OCC음주자가진단",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -19,6 +19,7 @@
     }
   ]
 }
+
 
 
 
